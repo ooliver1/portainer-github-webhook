@@ -4,5 +4,6 @@ services:
   app:
     restart: unless-stopped
     build: .
+    pull_policy: build
     ports:
       - "3473:3473"
