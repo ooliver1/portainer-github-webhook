@@ -42,10 +42,16 @@ func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter,
 			return
 		}
 
-		hash.Write(body)
+		_, err = hash.Write(body)
+		if err != nil {
+			log.Printf("Error hashing request body: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		signature := hash.Sum(nil)
 		if !hmac.Equal(append([]byte("sha256="), signature...), []byte(r.Header.Get("X-Hub-Signature-256"))) {
-			log.Printf("Invalid signature %v %v", string(signature), r.Header.Get("X-Hub-Signature-256"))
+			log.Printf("Invalid signature %v %v", string(append([]byte("sha256="), signature...)), r.Header.Get("X-Hub-Signature-256"))
 			w.WriteHeader(http.StatusTeapot)
 			return
 		}
