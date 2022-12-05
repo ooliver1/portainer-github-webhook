@@ -59,7 +59,7 @@ func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter,
 		}
 
 		var payload PushPayload
-		err = json.Unmarshal(body, &payload)
+		err = json.Unmarshal(buf, &payload)
 		if err != nil {
 			log.Printf("Error unmarshalling payload: %v", err)
 			w.WriteHeader(http.StatusBadRequest)
