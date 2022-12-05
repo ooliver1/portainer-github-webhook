@@ -5,5 +5,8 @@ services:
     restart: unless-stopped
     build: .
     pull_policy: build
+    environment:
+      PORTAINER_URL: ${PORTAINER_URL-}
+      SECRET_KEY: ${SECRET_KEY-}
     ports:
       - "3473:3473"
