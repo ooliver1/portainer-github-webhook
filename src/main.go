@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -49,8 +50,8 @@ func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter,
 			return
 		}
 
-		signature := hash.Sum(nil)
-		if !hmac.Equal(append([]byte("sha256="), signature...), []byte(r.Header.Get("X-Hub-Signature-256"))) {
+		signature := "sha256=" + hex.EncodeToString(hash.Sum(nil))
+		if signature != r.Header.Get("X-Hub-Signature-256") {
 			log.Printf("Invalid signature %v %v", string(append([]byte("sha256="), signature...)), r.Header.Get("X-Hub-Signature-256"))
 			w.WriteHeader(http.StatusTeapot)
 			return
