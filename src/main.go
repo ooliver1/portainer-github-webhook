@@ -28,9 +28,9 @@ type Repository struct {
 	FullName string `json:"full_name"`
 }
 
-func handlerWithConfig(config Config) func(http.ResponseWriter, *http.Request) {
+func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		hash := hmac.New(sha256.New, []byte(config.SecretKey))
+		hash := hmac.New(sha256.New, []byte(secretKey))
 		var body []byte
 		_, err := r.Body.Read(body)
 
@@ -63,7 +63,7 @@ func handlerWithConfig(config Config) func(http.ResponseWriter, *http.Request) {
 		}
 
 		uuid := r.URL.Query().Get("uuid")
-		res, err := http.Post(fmt.Sprintf("%s/api/stacks/webhooks/%s", config.PortainerUrl, uuid), "", nil)
+		res, err := http.Post(fmt.Sprintf("%s/api/stacks/webhooks/%s", portainerUrl, uuid), "", nil)
 		if err != nil || res.StatusCode != http.StatusOK {
 			log.Printf("Error creating request: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -89,7 +89,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	http.HandleFunc("/", handlerWithConfig(config))
+	secretKey := os.Getenv("SECRET_KEY")
+	if secretKey == "" {
+		fmt.Fprintf(os.Stderr, "SECRET_KEY environment variable not set")
+		os.Exit(1)
+	}
+	portainerUrl := os.Getenv("PORTAINER_URL")
+	if portainerUrl == "" {
+		fmt.Fprintf(os.Stderr, "PORTAINER_URL environment variable not set")
+		os.Exit(1)
+	}
+	http.HandleFunc("/", handlerWithConfig(secretKey, portainerUrl))
 
 	port := os.Getenv("PORT")
 	if port == "" {
