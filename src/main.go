@@ -14,7 +14,11 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/", getRoot)
 
-	err := http.ListenAndServe(":3333", nil)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3473"
+	}
+	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 
 	if errors.Is(err, http.ErrServerClosed) {
 		fmt.Printf("server closed\n")
