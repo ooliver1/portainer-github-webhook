@@ -80,6 +80,7 @@ func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter,
 			return
 		}
 
+		fmt.Printf("Successfully updated stack %s", uuid)
 		w.WriteHeader(http.StatusNoContent)
 	}
 
