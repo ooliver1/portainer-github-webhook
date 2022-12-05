@@ -15,15 +15,8 @@ import (
 )
 
 type Config struct {
-	PortainerUrl string    `yaml:"portainer_url"`
-	SecretKey    string    `yaml:"secret_key"`
-	Webhooks     []Webhook `yaml:"webhooks"`
-}
-
-type Webhook struct {
-	Uuid   string `yaml:"uuid"`
-	Repo   string `yaml:"repo"`
-	Branch string `yaml:"branch"`
+	PortainerUrl string `yaml:"portainer_url"`
+	SecretKey    string `yaml:"secret_key"`
 }
 
 type PushPayload struct {
@@ -63,22 +56,23 @@ func handlerWithConfig(config Config) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		for _, webhook := range config.Webhooks {
-			if strings.EqualFold(webhook.Repo, payload.Repository.FullName) &&
-				strings.EqualFold(webhook.Branch, strings.TrimPrefix(payload.Ref, "refs/heads/")) {
-
-				log.Printf("Found webhook for %s", payload.Repository.FullName)
-				res, err := http.Post(fmt.Sprintf("%s/api/stacks/webhooks/%s", config.PortainerUrl, webhook.Uuid), "", nil)
-				if err != nil || res.StatusCode != http.StatusOK {
-					log.Printf("Error creating request: %v", err)
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-
-				w.WriteHeader(http.StatusNoContent)
-			}
+		if !strings.EqualFold(r.URL.Query().Get("branch"), strings.TrimPrefix(payload.Ref, "refs/heads/")) {
+			log.Printf("Not the desired branch: %v", payload.Ref)
+			w.WriteHeader(http.StatusNoContent)
+			return
 		}
+
+		uuid := r.URL.Query().Get("uuid")
+		res, err := http.Post(fmt.Sprintf("%s/api/stacks/webhooks/%s", config.PortainerUrl, uuid), "", nil)
+		if err != nil || res.StatusCode != http.StatusOK {
+			log.Printf("Error creating request: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
 	}
+
 }
 
 func main() {
