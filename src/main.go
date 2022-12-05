@@ -43,7 +43,6 @@ func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter,
 			return
 		}
 
-		log.Printf("Request body: %s", buf)
 		_, err = hash.Write(buf)
 		if err != nil {
 			log.Printf("Error hashing request body: %v", err)
