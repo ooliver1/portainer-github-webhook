@@ -54,6 +54,7 @@ func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter,
 		if !hmac.Equal([]byte(signature), []byte(r.Header.Get("X-Hub-Signature-256"))) {
 			log.Printf("Invalid signature %v %v", string(append([]byte("sha256="), signature...)), r.Header.Get("X-Hub-Signature-256"))
 			w.WriteHeader(http.StatusTeapot)
+			log.Printf("%v", signature == r.Header.Get("X-Hub-Signature-256"))
 			return
 		}
 
@@ -73,7 +74,7 @@ func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter,
 
 		uuid := r.URL.Query().Get("uuid")
 		res, err := http.Post(fmt.Sprintf("%s/api/stacks/webhooks/%s", portainerUrl, uuid), "", nil)
-		if err != nil || res.StatusCode != http.StatusOK {
+		if err != nil || res.StatusCode != http.StatusNoContent {
 			log.Printf("Error creating request: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
