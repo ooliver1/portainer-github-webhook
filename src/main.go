@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -34,8 +35,7 @@ func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter,
 		}
 
 		hash := hmac.New(sha256.New, []byte(secretKey))
-		var body []byte
-		_, err := r.Body.Read(body)
+		buf, err := io.ReadAll(r.Body)
 
 		if err != nil {
 			log.Printf("Error reading request body: %v", err)
@@ -43,8 +43,8 @@ func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter,
 			return
 		}
 
-		log.Printf("Request body: %s", body)
-		_, err = hash.Write(body)
+		log.Printf("Request body: %s", buf)
+		_, err = hash.Write(buf)
 		if err != nil {
 			log.Printf("Error hashing request body: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
