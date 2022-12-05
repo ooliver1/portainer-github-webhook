@@ -23,6 +23,15 @@ type Repository struct {
 
 func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		event := r.Header.Get("X-GitHub-Event")
+		if event == "ping" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		} else if event != "push" {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			return
+		}
+
 		hash := hmac.New(sha256.New, []byte(secretKey))
 		var body []byte
 		_, err := r.Body.Read(body)
