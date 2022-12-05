@@ -84,14 +84,14 @@ func handlerWithConfig(config Config) func(http.ResponseWriter, *http.Request) {
 func main() {
 	configFile, err := os.ReadFile("config.yaml")
 	if err != nil {
-		fmt.Printf("Error reading config file: %v", err)
+		fmt.Fprintf(os.Stderr, "Error reading config file: %v", err)
 		os.Exit(1)
 	}
 
 	var config Config
 	err = yaml.Unmarshal(configFile, &config)
 	if err != nil {
-		fmt.Printf("Error parsing config file: %v", err)
+		fmt.Fprintf(os.Stderr, "Error parsing config file: %v", err)
 		os.Exit(1)
 	}
 
@@ -103,9 +103,9 @@ func main() {
 	}
 	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if errors.Is(err, http.ErrServerClosed) {
-		fmt.Printf("server closed\n")
+		fmt.Fprintf(os.Stderr, "server closed\n")
 	} else if err != nil {
-		fmt.Printf("error starting server: %s\n", err)
+		fmt.Fprintf(os.Stderr, "error starting server: %s\n", err)
 		os.Exit(1)
 	}
 }
