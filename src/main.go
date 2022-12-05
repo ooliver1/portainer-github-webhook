@@ -10,14 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
-
-	"gopkg.in/yaml.v3"
 )
-
-type Config struct {
-	PortainerUrl string `yaml:"portainer_url"`
-	SecretKey    string `yaml:"secret_key"`
-}
 
 type PushPayload struct {
 	Ref        string     `json:"ref"`
@@ -76,19 +69,6 @@ func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter,
 }
 
 func main() {
-	configFile, err := os.ReadFile("config.yaml")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading config file: %v", err)
-		os.Exit(1)
-	}
-
-	var config Config
-	err = yaml.Unmarshal(configFile, &config)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error parsing config file: %v", err)
-		os.Exit(1)
-	}
-
 	secretKey := os.Getenv("SECRET_KEY")
 	if secretKey == "" {
 		fmt.Fprintf(os.Stderr, "SECRET_KEY environment variable not set")
@@ -105,7 +85,7 @@ func main() {
 	if port == "" {
 		port = "3473"
 	}
-	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if errors.Is(err, http.ErrServerClosed) {
 		fmt.Fprintf(os.Stderr, "server closed\n")
 	} else if err != nil {
