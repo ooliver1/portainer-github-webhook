@@ -45,7 +45,7 @@ func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter,
 		hash.Write(body)
 		signature := hash.Sum(nil)
 		if !hmac.Equal(append([]byte("sha256="), signature...), []byte(r.Header.Get("X-Hub-Signature-256"))) {
-			log.Printf("Invalid signature")
+			log.Printf("Invalid signature %v %v", string(signature), r.Header.Get("X-Hub-Signature-256"))
 			w.WriteHeader(http.StatusTeapot)
 			return
 		}
