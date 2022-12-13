@@ -75,7 +75,7 @@ func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter,
 		uuid := r.URL.Query().Get("uuid")
 		res, err := http.Post(fmt.Sprintf("%s/api/stacks/webhooks/%s", portainerUrl, uuid), "", nil)
 		if err != nil {
-			log.Printf("Error creating request: %v, status code %v", err, res.StatusCode)
+			log.Printf("Error creating request: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
