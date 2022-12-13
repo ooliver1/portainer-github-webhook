@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -23,7 +24,7 @@ type Repository struct {
 	FullName string `json:"full_name"`
 }
 
-func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter, *http.Request) {
+func handlerWithConfig(secretKey, portainerUrl string, client *http.Client) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		event := r.Header.Get("X-GitHub-Event")
 		if event == "ping" {
@@ -73,7 +74,7 @@ func handlerWithConfig(secretKey, portainerUrl string) func(http.ResponseWriter,
 		}
 
 		uuid := r.URL.Query().Get("uuid")
-		res, err := http.Post(fmt.Sprintf("%s/api/stacks/webhooks/%s", portainerUrl, uuid), "", nil)
+		res, err := client.Post(fmt.Sprintf("%s/api/stacks/webhooks/%s", portainerUrl, uuid), "", nil)
 		if err != nil {
 			log.Printf("Error creating request: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -102,7 +103,12 @@ func main() {
 		fmt.Fprintf(os.Stderr, "PORTAINER_URL environment variable not set")
 		os.Exit(1)
 	}
-	http.HandleFunc("/", handlerWithConfig(secretKey, portainerUrl))
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+	http.HandleFunc("/", handlerWithConfig(secretKey, portainerUrl, client))
 
 	port := os.Getenv("PORT")
 	if port == "" {
